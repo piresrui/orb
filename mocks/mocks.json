@@ -1,0 +1,36 @@
+[
+  {
+    "httpRequest": {
+      "method": "POST",
+      "path": "/signup",
+      "body": {
+        "type": "JSON",
+        "value": {
+          "png": "string",
+          "key": "string"
+        }
+      }
+    },
+    "httpResponse": {
+      "statusCode": 200
+    }
+  },
+  {
+    "httpRequest": {
+      "method": "POST",
+      "path": "/status",
+      "body": {
+        "type": "JSON",
+        "value": {
+          "battery": "string",
+          "cpu": "string",
+          "disk": "string",
+          "temp": "string"
+        }
+      }
+    },
+    "httpResponse": {
+      "statusCode": 200
+    }
+  }
+]

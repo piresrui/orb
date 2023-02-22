@@ -1,0 +1,13 @@
+version: '3'
+
+services:
+  mock-api:
+    image: mockserver/mockserver:5.15.0
+    ports:
+        - "1080:1080"
+    environment:
+      MOCKSERVER_INITIALIZATION_JSON_PATH: /mocks/mocks.json
+    volumes:
+      - type: bind
+        source: ./mocks
+        target: /mocks
