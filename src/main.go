@@ -1,19 +1,41 @@
 package main
 
 import (
-	"fmt"
-	"github.com/piresrui/orb/config"
+	"context"
 	orb2 "github.com/piresrui/orb/orb"
+	"log"
+	"os"
+	"os/signal"
+	"time"
 )
 
-func main() {
-
-	conf, _ := config.ProvideConfig()
-	orb := orb2.VirtualOrb{
-		Config: *conf,
+func periodic(action orb2.PeriodicFunc, period time.Duration) {
+	t := time.NewTicker(period * time.Second)
+	defer t.Stop()
+	for {
+		select {
+		case <-t.C:
+			err := action()
+			if err != nil {
+				log.Println(err)
+			}
+		}
 	}
+}
 
-	_ = orb.Status()
-	_ = orb.Signup("")
-	fmt.Println(conf)
+func main() {
+	orb := orb2.ProvideVirtualOrb()
+	ctx, cancel := context.WithCancel(context.Background())
+	c := make(chan os.Signal, 1)
+	signal.Notify(c, os.Interrupt)
+	defer cancel()
+
+	go periodic(orb.Status, 1)
+	go periodic(orb.Signup, 1)
+
+	select {
+	case <-c:
+		cancel()
+	case <-ctx.Done():
+	}
 }

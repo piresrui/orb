@@ -1,6 +1,7 @@
 package config
 
 import (
+	"fmt"
 	"log"
 	"os"
 	"strconv"
@@ -8,18 +9,32 @@ import (
 
 // EnvConfig contains environment variables
 type EnvConfig struct {
-	APIEndpoint string
-	APIPort     int
+	Hostname   string
+	AssetDir   string
+	SignupPath string
+	ReportPath string
 }
 
 func ProvideConfig() (*EnvConfig, error) {
-	endpoint, ok := os.LookupEnv("API_ENDPOINT")
+	host, ok := os.LookupEnv("API_HOST")
 	if !ok {
-		log.Printf("WARN: API_ENDPOINT not set")
+		log.Printf("WARN: API_HOST not set")
 	}
 	portStr, ok := os.LookupEnv("API_PORT")
 	if !ok {
 		log.Printf("WARN: API_PORT not set")
+	}
+	assetDir, ok := os.LookupEnv("ASSET_DIR")
+	if !ok {
+		log.Printf("WARN: ASSET_DIR not set")
+	}
+	signupPath, ok := os.LookupEnv("SIGNUP_PATH")
+	if !ok {
+		log.Printf("WARN: SIGNUP_PATH not set")
+	}
+	reportPath, ok := os.LookupEnv("REPORT_PATH")
+	if !ok {
+		log.Printf("WARN: REPORT_PATH not set")
 	}
 
 	port, err := strconv.Atoi(portStr)
@@ -28,7 +43,9 @@ func ProvideConfig() (*EnvConfig, error) {
 	}
 
 	return &EnvConfig{
-		APIEndpoint: endpoint,
-		APIPort:     port,
+		Hostname:   fmt.Sprintf("http://%s:%d/", host, port),
+		AssetDir:   assetDir,
+		SignupPath: signupPath,
+		ReportPath: reportPath,
 	}, nil
 }

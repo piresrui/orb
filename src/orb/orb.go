@@ -1,22 +1,76 @@
 package orb
 
-import "github.com/piresrui/orb/config"
+import (
+	"encoding/base64"
+	"fmt"
+	"github.com/google/uuid"
+	"io"
+	"log"
+	"math/rand"
+	"os"
+)
 
 type Orb interface {
-	// Signup pings API to create new signup key
-	Signup(string) error
-	// Status pings API with hardware status
-	Status() error
+	// Report returns orb hardware status
+	Report() Report
+	// Hash hashes a retina image
+	Hash(string) string
 }
 
-type VirtualOrb struct {
-	Config config.EnvConfig
+type orb struct{}
+
+func provideOrb() *orb {
+	return &orb{}
 }
 
-func (v *VirtualOrb) Signup(path string) error {
-	return nil
+type Report struct {
+	CPU     string `json:"cpu"`
+	Disk    string `json:"disk"`
+	Temp    string `json:"temp"`
+	Battery string `json:"battery"`
 }
 
-func (v *VirtualOrb) Status() error {
-	return nil
+type Signup struct {
+	Image string `json:"image"`
+	Key   string `json:"key"`
+}
+
+// Report
+// This simulates actual hardware information
+// On an actual orb it would fetch data from system
+func (o *orb) Report() Report {
+	cpu := fmt.Sprintf("%d %", rand.Intn(100))
+	disk := fmt.Sprintf("%d GB", rand.Intn(1000+100)+100)
+	temp := fmt.Sprintf("%d ºC", rand.Intn(100+30)+30)
+	battery := fmt.Sprintf("%d %", rand.Intn(100))
+
+	return Report{
+		CPU:     cpu,
+		Disk:    disk,
+		Temp:    temp,
+		Battery: battery,
+	}
+}
+
+// Hash
+// This simulates hashing an image
+func (o *orb) Hash(path string) (*Signup, error) {
+	file, err := os.Open(path)
+	defer file.Close()
+	if err != nil {
+		log.Fatal(err)
+		return nil, err
+	}
+
+	data, err := io.ReadAll(file)
+	if err != nil {
+		log.Fatal(err)
+		return nil, err
+	}
+	imgBase64Str := base64.StdEncoding.EncodeToString(data)
+
+	return &Signup{
+		Key:   uuid.NewString(),
+		Image: imgBase64Str,
+	}, nil
 }
