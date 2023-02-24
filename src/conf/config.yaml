@@ -1,5 +1,0 @@
-API_HOST="mock-api"
-API_PORT=8080
-ASSET_DIR="./assets"
-SIGNUP_PATH="/signup"
-REPORT_PATH="/status"

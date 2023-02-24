@@ -14,12 +14,12 @@ type Orb interface {
 	// Report returns orb hardware status
 	Report() Report
 	// Hash hashes a retina image
-	Hash(string) string
+	Hash(string) (*Signup, error)
 }
 
 type orb struct{}
 
-func provideOrb() *orb {
+func provideOrb() Orb {
 	return &orb{}
 }
 
@@ -39,10 +39,10 @@ type Signup struct {
 // This simulates actual hardware information
 // On an actual orb it would fetch data from system
 func (o *orb) Report() Report {
-	cpu := fmt.Sprintf("%d %", rand.Intn(100))
-	disk := fmt.Sprintf("%d GB", rand.Intn(1000+100)+100)
-	temp := fmt.Sprintf("%d ºC", rand.Intn(100+30)+30)
-	battery := fmt.Sprintf("%d %", rand.Intn(100))
+	cpu := fmt.Sprintf("%d", rand.Intn(100))
+	disk := fmt.Sprintf("%d", rand.Intn(1000+100)+100)
+	temp := fmt.Sprintf("%d", rand.Intn(100+30)+30)
+	battery := fmt.Sprintf("%d", rand.Intn(100))
 
 	return Report{
 		CPU:     cpu,

@@ -9,43 +9,52 @@ import (
 
 // EnvConfig contains environment variables
 type EnvConfig struct {
-	Hostname   string
-	AssetDir   string
-	SignupPath string
-	ReportPath string
+	Hostname     string
+	AssetDir     string
+	SignupPath   string
+	ReportPath   string
+	SignupPeriod int
+	ReportPeriod int
 }
 
 func ProvideConfig() (*EnvConfig, error) {
-	host, ok := os.LookupEnv("API_HOST")
-	if !ok {
-		log.Printf("WARN: API_HOST not set")
-	}
-	portStr, ok := os.LookupEnv("API_PORT")
-	if !ok {
-		log.Printf("WARN: API_PORT not set")
-	}
-	assetDir, ok := os.LookupEnv("ASSET_DIR")
-	if !ok {
-		log.Printf("WARN: ASSET_DIR not set")
-	}
-	signupPath, ok := os.LookupEnv("SIGNUP_PATH")
-	if !ok {
-		log.Printf("WARN: SIGNUP_PATH not set")
-	}
-	reportPath, ok := os.LookupEnv("REPORT_PATH")
-	if !ok {
-		log.Printf("WARN: REPORT_PATH not set")
-	}
-
-	port, err := strconv.Atoi(portStr)
-	if err != nil {
-		return nil, err
-	}
+	host := GetOrDefault("API_HOST", "localhost")
+	port := GetIntOrDefault("API_PORT", 1080)
+	assetDir := GetOrDefault("ASSET_DIR", "./assets")
+	signupPath := GetOrDefault("SIGNUP_PATH", "/signup")
+	reportPath := GetOrDefault("REPORT_PATH", "/status")
+	signup := GetIntOrDefault("SIGNUP_PERIOD", 10)
+	status := GetIntOrDefault("REPORT_PERIOD", 10)
 
 	return &EnvConfig{
-		Hostname:   fmt.Sprintf("http://%s:%d/", host, port),
-		AssetDir:   assetDir,
-		SignupPath: signupPath,
-		ReportPath: reportPath,
+		Hostname:     fmt.Sprintf("http://%s:%d", host, port),
+		AssetDir:     assetDir,
+		SignupPath:   signupPath,
+		ReportPath:   reportPath,
+		SignupPeriod: signup,
+		ReportPeriod: status,
 	}, nil
+}
+
+func GetOrDefault(key, fallback string) string {
+	value := os.Getenv(key)
+	if len(value) == 0 {
+		log.Printf("WARN: %s not set, defaulting to %s\n", key, fallback)
+		return fallback
+	}
+	return value
+}
+
+func GetIntOrDefault(key string, fallback int) int {
+	value := os.Getenv(key)
+	if len(value) == 0 {
+		log.Printf("WARN: %s not set, defaulting to %d\n", key, fallback)
+		return fallback
+	}
+
+	v, err := strconv.Atoi(value)
+	if err != nil {
+		log.Fatal(err)
+	}
+	return v
 }

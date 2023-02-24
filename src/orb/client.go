@@ -4,11 +4,13 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"github.com/piresrui/orb/config"
+	"github.com/piresrui/orb/periodic"
+	"log"
 	"net/http"
+	"time"
 )
-
-type PeriodicFunc func() error
 
 type Client interface {
 	// Signup pings API to create new signup key
@@ -19,7 +21,7 @@ type Client interface {
 
 type VirtualOrb struct {
 	config *config.EnvConfig
-	orb    *orb
+	orb    Orb
 }
 
 func ProvideVirtualOrb() *VirtualOrb {
@@ -33,7 +35,14 @@ func ProvideVirtualOrb() *VirtualOrb {
 	}
 }
 
+func (v *VirtualOrb) Run() {
+	log.Println("Starting periodic calls...")
+	go periodic.Periodic(v.Status, time.Duration(v.config.ReportPeriod))
+	go periodic.Periodic(v.Signup, time.Duration(v.config.SignupPeriod))
+}
+
 func (v *VirtualOrb) Signup() error {
+	log.Println("Making a signup...")
 	signup, err := v.orb.Hash(v.config.AssetDir + "/some.png")
 	if err != nil {
 		return err
@@ -44,6 +53,7 @@ func (v *VirtualOrb) Signup() error {
 }
 
 func (v *VirtualOrb) Status() error {
+	log.Println("Reporting status...")
 	report := v.orb.Report()
 
 	err := v.reportStatus(&report)
@@ -55,17 +65,7 @@ func (v *VirtualOrb) makeSignupRequest(signup *Signup) error {
 	if err != nil {
 		return err
 	}
-	body := bytes.NewReader(r)
-	resp, err := http.Post(v.config.Hostname+v.config.SignupPath, "application/json", body)
-	if err != nil {
-		return err
-	}
-
-	if resp.StatusCode != http.StatusOK {
-		return errors.New("failed to signup")
-	}
-
-	return nil
+	return post(v.config.Hostname+v.config.SignupPath, r, http.StatusOK)
 }
 
 func (v *VirtualOrb) reportStatus(report *Report) error {
@@ -73,15 +73,17 @@ func (v *VirtualOrb) reportStatus(report *Report) error {
 	if err != nil {
 		return err
 	}
-	body := bytes.NewReader(r)
-	resp, err := http.Post(v.config.Hostname+v.config.ReportPath, "application/json", body)
+	return post(v.config.Hostname+v.config.ReportPath, r, http.StatusOK)
+}
+
+func post(api string, body []byte, statusCheck int) error {
+	resp, err := http.Post(api, "application/json", bytes.NewReader(body))
 	if err != nil {
 		return err
 	}
 
 	if resp.StatusCode != http.StatusOK {
-		return errors.New("failed to report status")
+		return errors.New(fmt.Sprintf("request failed to: %s", api))
 	}
-
 	return nil
 }

@@ -1,6 +1,11 @@
 version: '3'
 
 services:
+  orb:
+    image: orb:latest
+    env_file: ./conf/config.yaml
+    depends_on:
+      - mock-api
   mock-api:
     image: mockserver/mockserver:5.15.0
     ports:

@@ -15,7 +15,7 @@ ENV HOME /go/src/orb
 RUN mkdir -p "$HOME"
 WORKDIR "$HOME"
 
-COPY src/conf/ conf/
+COPY assets/ assets/
 COPY --from=builder "$HOME"/orb $HOME
 
 EXPOSE 8080

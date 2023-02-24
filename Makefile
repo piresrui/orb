@@ -1,8 +1,8 @@
 run-orb:
-	docker run -it --env-file=./src/conf/config.yaml --rm -p 8080:8080 orb
+	docker run -it --env-file=./conf/config.yaml --rm orb
 
-build:
+build-orb:
 	docker build -t orb .
 
-run:
+run-with-mock:
 	docker compose up -d

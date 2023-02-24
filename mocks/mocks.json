@@ -6,7 +6,7 @@
       "body": {
         "type": "JSON",
         "value": {
-          "png": "string",
+          "image": "string",
           "key": "string"
         }
       }

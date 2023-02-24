@@ -1,0 +1,7 @@
+API_HOST="mock-api"
+API_PORT=1080
+ASSET_DIR="./assets"
+SIGNUP_PATH="/signup"
+REPORT_PATH="/status"
+REPORT_PERIOD=10
+SIGNUP_PERIOD=10
