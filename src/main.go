@@ -14,7 +14,7 @@ func main() {
 	signal.Notify(c, os.Interrupt)
 	defer cancel()
 
-	orb.Run()
+	orb.Run(ctx)
 
 	select {
 	case <-c:

@@ -10,6 +10,7 @@ import (
 	"os"
 )
 
+//go:generate mockgen -destination=./mocks/mock_orb.go -package=mocks . Orb
 type Orb interface {
 	// Report returns orb hardware status
 	Report() Report
@@ -19,7 +20,7 @@ type Orb interface {
 
 type orb struct{}
 
-func provideOrb() Orb {
+func ProvideOrb() Orb {
 	return &orb{}
 }
 

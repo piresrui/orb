@@ -37,7 +37,3 @@ make build-orb
 
 docker run -it --env-file=./conf/config.yaml --rm orb
 ```
-
-## Design
-
-This library is designed to mock a hardware Orb. It contains a mock hardware `orb` that implements the `Orb` interface.

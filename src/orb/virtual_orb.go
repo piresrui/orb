@@ -2,6 +2,7 @@ package orb
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -17,11 +18,22 @@ type VirtualOrb interface {
 	Signup() error
 	// Status pings API with hardware status
 	Status() error
+	// Run sets up the periodic calls
+	Run(ctx context.Context)
 }
 
 type virtualOrb struct {
 	config *config.EnvConfig
 	orb    Orb
+	client *http.Client
+}
+
+func NewVirtualOrb(orb Orb, client *http.Client, conf *config.EnvConfig) VirtualOrb {
+	return &virtualOrb{
+		orb:    orb,
+		client: client,
+		config: conf,
+	}
 }
 
 func ProvideVirtualOrb() VirtualOrb {
@@ -29,16 +41,18 @@ func ProvideVirtualOrb() VirtualOrb {
 	if err != nil {
 		return nil
 	}
+	client := http.DefaultClient
 	return &virtualOrb{
-		orb:    provideOrb(),
+		orb:    ProvideOrb(),
 		config: conf,
+		client: client,
 	}
 }
 
-func (v *virtualOrb) Run() {
+func (v *virtualOrb) Run(ctx context.Context) {
 	log.Println("Starting periodic calls...")
-	go periodic.Periodic(v.Status, time.Duration(v.config.ReportPeriod))
-	go periodic.Periodic(v.Signup, time.Duration(v.config.SignupPeriod))
+	go periodic.Periodic(ctx, v.Status, time.Duration(v.config.ReportPeriod))
+	go periodic.Periodic(ctx, v.Signup, time.Duration(v.config.SignupPeriod))
 }
 
 func (v *virtualOrb) Signup() error {
@@ -65,7 +79,7 @@ func (v *virtualOrb) makeSignupRequest(signup *Signup) error {
 	if err != nil {
 		return err
 	}
-	return post(v.config.Hostname+v.config.SignupPath, r, http.StatusOK)
+	return v.post(v.config.Hostname+v.config.SignupPath, r, http.StatusOK)
 }
 
 func (v *virtualOrb) reportStatus(report *Report) error {
@@ -73,11 +87,11 @@ func (v *virtualOrb) reportStatus(report *Report) error {
 	if err != nil {
 		return err
 	}
-	return post(v.config.Hostname+v.config.ReportPath, r, http.StatusOK)
+	return v.post(v.config.Hostname+v.config.ReportPath, r, http.StatusOK)
 }
 
-func post(api string, body []byte, statusCheck int) error {
-	resp, err := http.Post(api, "application/json", bytes.NewReader(body))
+func (v *virtualOrb) post(api string, body []byte, statusCheck int) error {
+	resp, err := v.client.Post(api, "application/json", bytes.NewReader(body))
 	if err != nil {
 		return err
 	}

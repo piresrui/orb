@@ -6,3 +6,6 @@ build-orb:
 
 run-with-mock:
 	docker compose up -d
+
+go-generate:
+	cd src; go generate ./...
