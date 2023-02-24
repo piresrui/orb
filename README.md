@@ -37,3 +37,14 @@ make build-orb
 
 docker run -it --env-file=./conf/config.yaml --rm orb
 ```
+
+## Notes
+
+For the sake of velocity, some design decisions were done with a PoC mindset. i.e Proper logging isn't implemented, error handling is basic, etc...
+
+In a complete, "production ready" solution, I'd improve the following:
+
+1. Setup a proper logger, with defined levels (Warn, Debug, Error)
+2. Use a dependency injection lib to facilitate mock generation and reduce boilerplate code (e.g wire)
+3. Define error types and their propagation levels (e.g some errors should be user visible, other should show stacktraces)
+4. Add a smarter periodic system, with randomized periods.
