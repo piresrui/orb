@@ -12,36 +12,36 @@ import (
 	"time"
 )
 
-type Client interface {
+type VirtualOrb interface {
 	// Signup pings API to create new signup key
 	Signup() error
 	// Status pings API with hardware status
 	Status() error
 }
 
-type VirtualOrb struct {
+type virtualOrb struct {
 	config *config.EnvConfig
 	orb    Orb
 }
 
-func ProvideVirtualOrb() *VirtualOrb {
+func ProvideVirtualOrb() VirtualOrb {
 	conf, err := config.ProvideConfig()
 	if err != nil {
 		return nil
 	}
-	return &VirtualOrb{
+	return &virtualOrb{
 		orb:    provideOrb(),
 		config: conf,
 	}
 }
 
-func (v *VirtualOrb) Run() {
+func (v *virtualOrb) Run() {
 	log.Println("Starting periodic calls...")
 	go periodic.Periodic(v.Status, time.Duration(v.config.ReportPeriod))
 	go periodic.Periodic(v.Signup, time.Duration(v.config.SignupPeriod))
 }
 
-func (v *VirtualOrb) Signup() error {
+func (v *virtualOrb) Signup() error {
 	log.Println("Making a signup...")
 	signup, err := v.orb.Hash(v.config.AssetDir + "/some.png")
 	if err != nil {
@@ -52,7 +52,7 @@ func (v *VirtualOrb) Signup() error {
 	return err
 }
 
-func (v *VirtualOrb) Status() error {
+func (v *virtualOrb) Status() error {
 	log.Println("Reporting status...")
 	report := v.orb.Report()
 
@@ -60,7 +60,7 @@ func (v *VirtualOrb) Status() error {
 	return err
 }
 
-func (v *VirtualOrb) makeSignupRequest(signup *Signup) error {
+func (v *virtualOrb) makeSignupRequest(signup *Signup) error {
 	r, err := json.Marshal(signup)
 	if err != nil {
 		return err
@@ -68,7 +68,7 @@ func (v *VirtualOrb) makeSignupRequest(signup *Signup) error {
 	return post(v.config.Hostname+v.config.SignupPath, r, http.StatusOK)
 }
 
-func (v *VirtualOrb) reportStatus(report *Report) error {
+func (v *virtualOrb) reportStatus(report *Report) error {
 	r, err := json.Marshal(report)
 	if err != nil {
 		return err
